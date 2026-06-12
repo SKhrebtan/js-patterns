@@ -39,12 +39,12 @@ const sortItems = <T>(
 /**
  * Concrete Strategies
  */
-const sortByNameAsc = createSortStrategy<User, string>(
+export const sortByNameAsc = createSortStrategy<User, string>(
   user => user.name,
   'asc',
 );
 
-const sortByAgeDesc = createSortStrategy<User, number>(
+export const sortByAgeDesc = createSortStrategy<User, number>(
   user => user.age,
   'desc',
 );

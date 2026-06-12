@@ -9,11 +9,13 @@
  */
 import { useSyncExternalStore } from 'react';
 
-export enum DeviceType {
-  Mobile = 'mobile',
-  Tablet = 'tablet',
-  Desktop = 'desktop',
-}
+export const DeviceType = {
+  Mobile: 'mobile',
+  Tablet: 'tablet',
+  Desktop: 'desktop',
+} as const;
+
+export type DeviceType = (typeof DeviceType)[keyof typeof DeviceType];
 
 const MOBILE_BREAKPOINT = 420;
 const TABLET_BREAKPOINT = 768;
