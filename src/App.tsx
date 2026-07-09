@@ -1,4 +1,4 @@
-import { useDeviceType,} from './patterns/use-device-type.hook';
+import { useDeviceType,} from './hooks/use-device-type.hook';
 
 function App() {
   const { deviceType, isMobile, isTablet, isDesktop } = useDeviceType();
