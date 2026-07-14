@@ -1,0 +1,59 @@
+У базі конструктор зберігає спільні залежності:
+
+
+entity-field-translation.service.ts
+Lines 14-17
+constructor(
+  protected readonly llmTranslation: LlmTranslationService,
+  protected readonly llmTranslationPersistence: LlmTranslationPersistenceService,
+) {}
+У Financing:
+
+
+financing-translation.service.ts
+Lines 29-36
+constructor(
+  llmTranslation: LlmTranslationService,
+  llmTranslationPersistence: LlmTranslationPersistenceService,
+  @InjectRepository(FinancingEntity)
+  private readonly financingRepository: Repository<FinancingEntity>,
+) {
+  super(llmTranslation, llmTranslationPersistence);
+}
+super(...) = «спочатку ініціалізуй батька» — передай LLM-сервіси в базу.
+Свій financingRepository лишається тільки в підкласі (базі він не потрібен).
+
+ у підкласі ти їх напряму не викликаєш. Але вони потрібні батьку.
+
+super(llmTranslation, llmTranslationPersistence) кладе їх у поля бази:
+
+// EntityFieldTranslationService
+constructor(
+  protected readonly llmTranslation: LlmTranslationService,
+  protected readonly llmTranslationPersistence: LlmTranslationPersistenceService,
+) {}
+Далі, коли ти викликаєш:
+
+discountItemService.translateAndPersistSingleField(...)
+працює метод бази, і вже база використовує ці сервіси:
+
+
+entity-field-translation.service.ts
+Lines 88-125
+protected async translateAndPersistField(...) {
+  // ...
+  const existingId = await this.llmTranslationPersistence.findIdBySourceHash(...);
+  // ...
+  const result = await this.llmTranslation.translateField({ ... });
+  const saved = await this.llmTranslationPersistence.upsert({ ... });
+}
+Тобто ланцюг такий:
+
+Nest DI
+  → створює DiscountItemTranslationService(llm, persistence, repo)
+  → super(llm, persistence) зберігає їх у батьку
+  → translateAndPersistSingleField (база)
+       → translateAndPersistField (база)
+            → this.llmTranslation / this.llmTranslationPersistence
+       → this.loadSourceEntity / updateForeignKey (підклас + свій repo)
+Коротко: підклас не кличе LLM сам — він лише передає залежності батькові через super, а батько кличе їх у спільному скелеті. Підклас кличе лише свій repository.
